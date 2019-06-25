@@ -41,7 +41,7 @@ class HomeViewController: UIViewController, ImageScannerControllerDelegate {
     
 
     func saveImage(image: UIImage) -> String? {
-        guard let data = UIImageJPEGRepresentation(image, 1) ?? UIImagePNGRepresentation(image) else {
+        guard let data = image.jpegData(compressionQuality: 1) ?? image.pngData() else {
             return nil
         }
         guard let directory = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) as NSURL else {
