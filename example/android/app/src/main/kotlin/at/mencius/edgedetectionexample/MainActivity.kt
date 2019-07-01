@@ -1,4 +1,4 @@
-package com.sample.edgedetectionexample
+package at.matds.edgedetectionexample
 
 import android.os.Bundle
 
