@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.sample.edgedetection">
+  package="at.matds.edgedetection">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -9,12 +9,12 @@
         android:supportsRtl="true"        
         android:theme="@style/AppTheme">
         <activity 
-            android:name=".scan.ScanActivity"
+            android:name="at.matds.edgedetection.scan.ScanActivity"
             android:label="@string/scan"
             android:launchMode="singleTask" >
         </activity>
         <activity
-            android:name=".crop.CropActivity"
+            android:name="at.matds.edgedetection.crop.CropActivity"
             android:label="@string/crop"
             android:launchMode="singleTask" />
     </application>

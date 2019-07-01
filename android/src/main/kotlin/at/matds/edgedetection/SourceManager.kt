@@ -1,7 +1,7 @@
-package com.sample.edgedetection
+package at.matds.edgedetection
 
 
-import com.sample.edgedetection.processor.Corners
+import at.matds.edgedetection.processor.Corners
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.core.Size

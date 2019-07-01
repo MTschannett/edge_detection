@@ -1,4 +1,4 @@
-package com.sample.edgedetection.scan
+package at.matds.edgedetection.scan
 
 import android.content.Context
 import android.content.Intent
@@ -10,10 +10,10 @@ import android.media.MediaActionSound
 import android.util.Log
 import android.view.SurfaceHolder
 import android.widget.Toast
-import com.sample.edgedetection.SourceManager
-import com.sample.edgedetection.crop.CropActivity
-import com.sample.edgedetection.processor.Corners
-import com.sample.edgedetection.processor.processPicture
+import at.matds.edgedetection.SourceManager
+import at.matds.edgedetection.crop.CropActivity
+import at.matds.edgedetection.processor.Corners
+import at.matds.edgedetection.processor.processPicture
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers

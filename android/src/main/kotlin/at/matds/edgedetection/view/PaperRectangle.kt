@@ -1,4 +1,4 @@
-package com.sample.edgedetection.view
+package at.matds.edgedetection.view
 
 import android.app.Activity
 import android.content.Context
@@ -8,8 +8,8 @@ import android.util.DisplayMetrics
 import android.view.MotionEvent
 import org.opencv.core.Point
 import android.view.View
-import com.sample.edgedetection.SourceManager
-import com.sample.edgedetection.processor.Corners
+import at.matds.edgedetection.SourceManager
+import at.matds.edgedetection.processor.Corners
 import org.opencv.core.Size
 
 

@@ -1,4 +1,4 @@
-package com.sample.edgedetection
+package at.matds.edgedetection
 
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler

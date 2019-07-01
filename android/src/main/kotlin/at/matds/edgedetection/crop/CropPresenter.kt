@@ -1,4 +1,4 @@
-package com.sample.edgedetection.crop
+package at.matds.edgedetection.crop
 
 import android.Manifest
 import android.content.Context
@@ -6,15 +6,14 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Environment
 import android.os.SystemClock
-import android.support.v4.app.ActivityCompat
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.sample.edgedetection.SourceManager
-import com.sample.edgedetection.processor.Corners
-import com.sample.edgedetection.processor.TAG
-import com.sample.edgedetection.processor.cropPicture
-import com.sample.edgedetection.processor.enhancePicture
+import at.matds.edgedetection.SourceManager
+import at.matds.edgedetection.processor.Corners
+import at.matds.edgedetection.processor.TAG
+import at.matds.edgedetection.processor.cropPicture
+import at.matds.edgedetection.processor.enhancePicture
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -25,6 +24,7 @@ import java.io.File
 import java.io.FileOutputStream
 import android.provider.MediaStore
 import android.content.ContentValues
+import androidx.core.app.ActivityCompat
 
 const val IMAGES_DIR = "smart_scanner"
 

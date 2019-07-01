@@ -1,8 +1,8 @@
-package com.sample.edgedetection
+package at.matds.edgedetection
 
 import android.app.Activity
 import android.content.Intent
-import com.sample.edgedetection.scan.ScanActivity
+import at.matds.edgedetection.scan.ScanActivity
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry

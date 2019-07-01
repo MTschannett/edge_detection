@@ -1,4 +1,4 @@
-package com.sample.edgedetection.processor
+package at.matds.edgedetection.processor
 
 import android.graphics.Bitmap
 import android.util.Log

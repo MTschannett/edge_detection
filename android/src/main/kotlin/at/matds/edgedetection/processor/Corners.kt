@@ -1,4 +1,4 @@
-package com.sample.edgedetection.processor
+package at.matds.edgedetection.processor
 
 import org.opencv.core.Point
 import org.opencv.core.Size

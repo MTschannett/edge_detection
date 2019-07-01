@@ -1,15 +1,15 @@
-package com.sample.edgedetection.crop
+package at.matds.edgedetection.crop
 
 import android.app.Activity
 import android.content.Intent
 import android.widget.ImageView
-import com.sample.edgedetection.R
-import com.sample.edgedetection.base.BaseActivity
-import com.sample.edgedetection.view.PaperRectangle
+import at.matds.edgedetection.base.BaseActivity
+import at.matds.edgedetection.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_crop.*
 import android.view.MenuItem
 import android.view.Menu
-import com.sample.edgedetection.SCANNED_RESULT
+import at.matds.edgedetection.R
+import at.matds.edgedetection.SCANNED_RESULT
 
 
 class CropActivity : BaseActivity(), ICropView.Proxy {
