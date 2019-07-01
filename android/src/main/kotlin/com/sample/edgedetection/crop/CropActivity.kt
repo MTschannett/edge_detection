@@ -14,7 +14,7 @@ import com.sample.edgedetection.SCANNED_RESULT
 
 class CropActivity : BaseActivity(), ICropView.Proxy {
 
-    private lateinit var mPresenter: CropPresenter
+    private var mPresenter: CropPresenter? = null
 
     override fun prepare() {
     }
@@ -48,11 +48,11 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
         if (item.itemId == R.id.action_label) {
             if(item.title == applicationContext.getString(R.string.next)){
                 item.title = "Done"
-                mPresenter.crop()
+                mPresenter?.crop()
                 return true
             }
             if(item.title == applicationContext.getString(R.string.done)){
-                var path = mPresenter.save()
+                var path = mPresenter?.save()
                 setResult(Activity.RESULT_OK, Intent().putExtra(SCANNED_RESULT, path))
                 System.gc()
                 finish()

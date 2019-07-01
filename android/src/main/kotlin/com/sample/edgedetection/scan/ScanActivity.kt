@@ -1,9 +1,9 @@
 package com.sample.edgedetection.scan
 
+
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Debug
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
@@ -15,17 +15,16 @@ import com.sample.edgedetection.REQUEST_CODE
 import com.sample.edgedetection.SCANNED_RESULT
 import com.sample.edgedetection.base.BaseActivity
 import com.sample.edgedetection.view.PaperRectangle
-
 import kotlinx.android.synthetic.main.activity_scan.*
 import org.opencv.android.OpenCVLoader
 
+
 class ScanActivity : BaseActivity(), IScanView.Proxy {
 
-    private val REQUEST_CAMERA_PERMISSION = 0
-    private val EXIT_TIME = 2000
 
-    private lateinit var mPresenter: ScanPresenter
+    private val requestCameraPermission = 0
 
+    private var mPresenter: ScanPresenter? = null
 
     override fun provideContentViewId(): Int = R.layout.activity_scan
 
@@ -34,33 +33,35 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     }
 
     override fun prepare() {
-        if (!OpenCVLoader.initDebug()) {
-            Log.i(TAG, "loading opencv error, exit")
-            finish()
-        }
+        //org.bytedeco.javacpp::class.java
+        //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        if (!OpenCVLoader.initDebug())
+            Log.e("OpenCv", "Unable to load OpenCV");
+        else
+            Log.d("OpenCv", "OpenCV loaded");
+
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION)
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE), requestCameraPermission)
         } else if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), requestCameraPermission)
         } else if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION)
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), requestCameraPermission)
         }
 
         shut.setOnClickListener {
-            mPresenter.shut()
+            mPresenter?.shut()
         }
     }
 
-
     override fun onStart() {
         super.onStart()
-        mPresenter.start()
+        mPresenter?.start()
     }
 
     override fun onStop() {
         super.onStop()
-        mPresenter.stop()
+        mPresenter?.stop()
     }
 
     override fun exit() {
@@ -68,11 +69,11 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION
+        if (requestCode == requestCameraPermission
                 && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED)) {
             showMessage(R.string.camera_grant)
-            mPresenter.initCamera()
-            mPresenter.updateCamera()
+            mPresenter?.initCamera()
+            mPresenter?.updateCamera()
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }

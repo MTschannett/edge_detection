@@ -26,11 +26,9 @@ import java.io.FileOutputStream
 import android.provider.MediaStore
 import android.content.ContentValues
 
-
-
 const val IMAGES_DIR = "smart_scanner"
 
-class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy) {
+class CropPresenter(private val context: Context, private val iCropView: ICropView.Proxy) {
     private val picture: Mat? = SourceManager.pic
 
     private val corners: Corners? = SourceManager.corners

@@ -7,15 +7,12 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 
-class EdgeDetectionDelegate(activity: Activity) : PluginRegistry.ActivityResultListener {
+class EdgeDetectionDelegate(private var activity: Activity) : PluginRegistry.ActivityResultListener {
 
-    private var activity: Activity = activity
     private var result: MethodChannel.Result? = null
     private var methodCall: MethodCall? = null
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-
         if (requestCode == REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 if (null != data && null != data.extras) {
@@ -23,22 +20,21 @@ class EdgeDetectionDelegate(activity: Activity) : PluginRegistry.ActivityResultL
                     finishWithSuccess(filePath)
                 }
             } else if (resultCode == Activity.RESULT_CANCELED) {
-                    finishWithSuccess(null)
+                finishWithSuccess(null)
             }
         }
 
         return true;
     }
 
-    fun OpenCameraActivity(call: MethodCall, result: MethodChannel.Result) {
-
+    fun openCameraActivity(call: MethodCall, result: MethodChannel.Result) {
         if (!setPendingMethodCallAndResult(call, result)) {
             finishWithAlreadyActiveError()
             return
         }
 
-        var intent = Intent(Intent(activity.applicationContext, ScanActivity::class.java))
-        activity.startActivityForResult(intent,REQUEST_CODE)
+        val intent = Intent(Intent(activity.applicationContext, ScanActivity::class.java))
+        activity.startActivityForResult(intent, REQUEST_CODE)
     }
 
     private fun setPendingMethodCallAndResult(methodCall: MethodCall, result: MethodChannel.Result): Boolean {

@@ -7,11 +7,9 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.PluginRegistry.Registrar
 
 class EdgeDetectionPlugin(private val registrar: Registrar, private val delegate: EdgeDetectionDelegate) : MethodCallHandler {
-
-
   companion object {
     @JvmStatic
-    fun registerWith(registrar: Registrar): Unit {
+    fun registerWith(registrar: Registrar) {
       val channel = MethodChannel(registrar.messenger(), "edge_detection")
 
       val delegate = EdgeDetectionDelegate(registrar.activity())
@@ -22,18 +20,15 @@ class EdgeDetectionPlugin(private val registrar: Registrar, private val delegate
     }
   }
 
-  override fun onMethodCall(call: MethodCall, result: Result): Unit {
-    if (registrar.activity() == null) {
-      result.error("no_activity", "edge_detection plugin requires a foreground activity.", null)
-      return
-    }
-    else if (call.method.equals("edge_detect")) {
-      delegate.OpenCameraActivity(call, result)
-    }
-    else if (call.method.equals("getPlatformVersion")) {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    }else {
-      result.notImplemented()
+  override fun onMethodCall(call: MethodCall, result: Result) {
+    when {
+        registrar.activity() == null -> {
+          result.error("no_activity", "edge_detection plugin requires a foreground activity.", null)
+          return
+        }
+        call.method == "edge_detect" -> delegate.openCameraActivity(call, result)
+        call.method == "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
+        else -> result.notImplemented()
     }
   }
 }

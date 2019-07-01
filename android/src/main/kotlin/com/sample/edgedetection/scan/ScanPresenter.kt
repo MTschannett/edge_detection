@@ -1,20 +1,15 @@
 package com.sample.edgedetection.scan
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.hardware.Camera
 import android.media.MediaActionSound
-import android.os.Build
 import android.util.Log
 import android.view.SurfaceHolder
 import android.widget.Toast
-import com.sample.edgedetection.REQUEST_CODE
 import com.sample.edgedetection.SourceManager
 import com.sample.edgedetection.crop.CropActivity
 import com.sample.edgedetection.processor.Corners
@@ -30,20 +25,24 @@ import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
+
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
+import kotlin.math.abs
 
 class ScanPresenter constructor(private val context: Context, private val iView: IScanView.Proxy)
     : SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
-    private val TAG: String = "ScanPresenter"
+    private val tag: String = "ScanPresenter"
     private var mCamera: Camera? = null
     private val mSurfaceHolder: SurfaceHolder = iView.getSurfaceView().holder
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
-    private var busy: Boolean = false
+    private var busy = false
+
+    private val MAX_ASPECT_DISTORTION = 0.15
+    private val ASPECT_RATIO_TOLERANCE = 0.01f
 
     init {
         mSurfaceHolder.addCallback(this)
@@ -52,18 +51,18 @@ class ScanPresenter constructor(private val context: Context, private val iView:
     }
 
     fun start() {
-        mCamera?.startPreview() ?: Log.i(TAG, "camera null")
+        mCamera?.startPreview() ?: Log.i(tag, "camera null")
     }
 
     fun stop() {
-        mCamera?.stopPreview() ?: Log.i(TAG, "camera null")
+        mCamera?.stopPreview() ?: Log.i(tag, "camera null")
     }
 
     fun shut() {
         busy = true
-        Log.i(TAG, "try to focus")
+        Log.i(tag, "try to focus")
         mCamera?.autoFocus { b, _ ->
-            Log.i(TAG, "focus result: " + b)
+            Log.i(tag, "focus result: $b")
             mCamera?.takePicture(null, null, this)
             MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
         }
@@ -93,48 +92,47 @@ class ScanPresenter constructor(private val context: Context, private val iView:
             return
         }
 
-
         val param = mCamera?.parameters
-        val size = getMaxResolution()
-        param?.setPreviewSize(size?.width ?: 1920, size?.height ?: 1080)
-        val display = iView.getDisplay()
-        val point = Point()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            display.getRealSize(point)
-        }else{
-            display.getSize(point)
-        }
-        val displayWidth = minOf(point.x, point.y)
-        val displayHeight = maxOf(point.x, point.y)
-        val displayRatio = displayWidth.div(displayHeight.toFloat())
-        val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
-        if (displayRatio > previewRatio) {
-            val surfaceParams = iView.getSurfaceView().layoutParams
-            surfaceParams.height = (displayHeight / displayRatio * previewRatio).toInt()
-            iView.getSurfaceView().layoutParams = surfaceParams
-        }
+        val size = createSize(getMaxResolution())
 
-        val supportPicSize = mCamera?.parameters?.supportedPictureSizes
-        supportPicSize?.sortByDescending { it.width.times(it.height) }
-        var pictureSize = supportPicSize?.find { it.height.toFloat().div(it.width.toFloat()) - previewRatio < 0.01 }
+        val previewSize = generateValidPreviewSize(mCamera, size.width, size.height)
 
-        if (null == pictureSize) {
-            pictureSize = supportPicSize?.get(0)
-        }
+        param?.setPreviewSize(previewSize?.previewSize?.width ?: 1920, previewSize?.previewSize?.height ?: 1080)
 
-        if (null == pictureSize) {
-            Log.e(TAG, "can not get picture size")
+//        val display = iView.getDisplay()
+//        val point = Point()
+//        display.getRealSize(point)
+//        val displayWidth = minOf(point.x, point.y)
+//        val displayHeight = maxOf(point.x, point.y)
+//        val displayRatio = displayWidth.div(displayHeight.toFloat())
+//        val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
+//        if (displayRatio > previewRatio) {
+//            val surfaceParams = iView.getSurfaceView().layoutParams
+//            surfaceParams.height = (displayHeight / displayRatio * previewRatio).toInt()
+//            iView.getSurfaceView().layoutParams = surfaceParams
+//        }
+//
+//        val supportPicSize = mCamera?.parameters?.supportedPictureSizes
+//        supportPicSize?.sortByDescending { it.width.times(it.height) }
+//        var pictureSize = supportPicSize?.find { it.height.toFloat().div(it.width.toFloat()) - previewRatio < 0.01 }
+
+//        if (null == pictureSize) {
+//            pictureSize = supportPicSize?.get(0)
+//        }
+
+        if (null == previewSize) {
+            Log.e(tag, "can not get picture size")
         } else {
-            param?.setPictureSize(pictureSize.width, pictureSize.height)
+            param?.setPictureSize(previewSize.pictureSize.width, previewSize.pictureSize.height)
         }
-        val pm = context.packageManager
-        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
-            param?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
-            Log.d(TAG, "enabling autofocus")
-        } else {
-            Log.d(TAG, "autofocus not available")
-        }
-        param?.flashMode = Camera.Parameters.FLASH_MODE_AUTO
+//        val pm = context.packageManager
+//        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
+//            param?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+//            Log.d(tag, "enabling autofocus")
+//        } else {
+//            Log.d(tag, "autofocus not available")
+//        }
+//        param?.flashMode = Camera.Parameters.FLASH_MODE_AUTO
 
         mCamera?.parameters = param
         mCamera?.setDisplayOrientation(90)
@@ -158,38 +156,38 @@ class ScanPresenter constructor(private val context: Context, private val iView:
     }
 
     override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
-        Log.i(TAG, "on picture taken")
+        Log.i(tag, "on picture taken")
         Observable.just(p0)
                 .subscribeOn(proxySchedule)
                 .subscribe {
-                    val pictureSize = p1?.parameters?.pictureSize
-                    Log.i(TAG, "picture size: " + pictureSize.toString())
-                    val mat = Mat(Size(pictureSize?.width?.toDouble() ?: 1920.toDouble(),
-                            pictureSize?.height?.toDouble() ?: 1080.toDouble()), CvType.CV_8U)
+                    val pictureSize = createSize(p1?.parameters?.pictureSize)
+
+
+                    Log.i(tag, "picture size: " + pictureSize.toString())
+                    val mat = Mat(Size(pictureSize.width.toDouble(),
+                            pictureSize.height.toDouble()), CvType.CV_8U)
                     mat.put(0, 0, p0)
-                    val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
+                    val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                     mat.release()
                     SourceManager.corners = processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
                     SourceManager.pic = pic
-
-                    (context as Activity)?.startActivityForResult(Intent(context, CropActivity::class.java),REQUEST_CODE)
+                    context.startActivity(Intent(context, CropActivity::class.java))
                     busy = false
                 }
     }
-
 
     override fun onPreviewFrame(p0: ByteArray?, p1: Camera?) {
         if (busy) {
             return
         }
-        Log.i(TAG, "on process start")
+        Log.i(tag, "on process start")
         busy = true
         Observable.just(p0)
                 .observeOn(proxySchedule)
                 .subscribe {
-                    Log.i(TAG, "start prepare paper")
+                    Log.i(tag, "start prepare paper")
                     val parameters = p1?.parameters
                     val width = parameters?.previewSize?.width
                     val height = parameters?.previewSize?.height
@@ -226,10 +224,49 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                                 iView.getPaperRect().onCornersNotDetected()
                             })
                 }
-
     }
 
     private fun getMaxResolution(): Camera.Size? = mCamera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
 
+    private fun generateValidPreviewSize(camera: Camera?, desiredWidth: Int,
+                                         desiredHeight: Int): SizePair? {
+        if (camera == null) throw IllegalStateException("Camera cannot be null when selecting a preview Size")
 
+        val parameters = camera.parameters
+        val screenAspectRatio =  desiredHeight.toDouble() /  desiredWidth.toDouble()
+        val supportedPreviewSizes = parameters.supportedPreviewSizes
+        val supportedPictureSizes = parameters.supportedPictureSizes
+        var bestPair: SizePair? = null
+        var currentMinDistortion = MAX_ASPECT_DISTORTION
+
+        for (previewSize in supportedPreviewSizes) {
+            val previewAspectRatio = previewSize.width.toDouble() / previewSize.height
+            for (pictureSize in supportedPictureSizes) {
+                val pictureAspectRatio = pictureSize.width.toDouble() / pictureSize.height
+                if (abs(previewAspectRatio - pictureAspectRatio) < ASPECT_RATIO_TOLERANCE) {
+                    val sizePair = SizePair(createSize(previewSize), createSize(pictureSize))
+
+                    val isCandidatePortrait = previewSize.width < previewSize.height
+                    val maybeFlippedWidth = if (isCandidatePortrait) previewSize.width else previewSize.height
+                    val maybeFlippedHeight = if (isCandidatePortrait) previewSize.height else previewSize.width
+                    val aspectRatio = maybeFlippedWidth.toDouble() / maybeFlippedHeight
+                    val distortion = abs(aspectRatio - screenAspectRatio)
+                    if (distortion < currentMinDistortion) {
+                        currentMinDistortion = distortion.toDouble()
+                        bestPair = sizePair
+                    }
+                    break
+                }
+            }
+        }
+
+        return bestPair
+    }
+
+
+    class SizePair(val previewSize: CustomSize, val pictureSize: CustomSize)
+
+    class CustomSize(val width: Int, val height: Int)
+
+    private fun createSize(size: Camera.Size?, default: CustomSize = CustomSize(1920, 1080)): CustomSize =  if (size != null) CustomSize(size.width, size.height) else default
 }
